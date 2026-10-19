@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.local-cloud/
+.local-cloud*/
+.env
+*.env
+*.log
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+*.tar.gz
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.part
