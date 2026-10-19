@@ -1,0 +1,41 @@
+[Unit]
+Description=ScorpioCloud Personal Cloud Drive Server (Raspberry Pi 4 + HDD)
+Documentation=https://localhost/README.md
+After=network-online.target local-fs.target
+Wants=network-online.target
+# Prevent starting if /mnt/cloud is not a mounted filesystem
+RequiresMountsFor=/mnt/cloud
+ConditionPathIsMountPoint=/mnt/cloud
+
+[Service]
+Type=simple
+User=cloudadmin
+Group=cloudadmin
+WorkingDirectory=/mnt/cloud/app
+EnvironmentFile=/mnt/cloud/config/.env
+Environment=NODE_ENV=production
+Environment=STORAGE_ROOT=/mnt/cloud
+Environment=REQUIRE_MOUNT_CHECK=true
+# Redirect OS tmpdir to HDD so zero temporary buffers touch the microSD card
+Environment=TMPDIR=/mnt/cloud/data/temp
+
+ExecStartPre=/mnt/cloud/app/deploy/verify-hdd-mount.sh
+ExecStart=/usr/bin/node --max-old-space-size=512 /mnt/cloud/app/dist/server/index.js
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Append service stdout/stderr directly to HDD logs
+StandardOutput=append:/mnt/cloud/data/logs/scorpiocloud.log
+StandardError=append:/mnt/cloud/data/logs/scorpiocloud-error.log
+
+# Security Hardening for Raspberry Pi 4
+NoNewPrivileges=true
+PrivateTmp=false
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/mnt/cloud
+
+[Install]
+WantedBy=multi-user.target
